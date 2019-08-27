@@ -20,8 +20,9 @@ def col2lab(col):
         mask = np.zeros(col.shape[:2]).astype(np.uint8)
         mask = 255*(col==color).astype(np.uint8)
         mask = (np.sum(mask,axis=2) == (255*3)).astype(np.uint8)
-        l, c = np.where(mask==1)
-        lab[l,c] = i
+        #l, c = np.where(mask==1)
+        lab[mask==1] = i
+        #lab[l,c] = i
 
         #cv2.imshow('mask', mask)
         #stop_show = cv2.waitKey(0) & 0xFF
@@ -31,48 +32,87 @@ def col2lab(col):
     return lab
 
 
-def lab2col(lab):
+def lab2col(lab, colors):
     """
     Convert label map to color map
     """
     col = np.zeros((lab.shape + (3,))).astype(np.uint8)
-    for i, color in enumerate(palette.palette):
-        color = [color[2], color[1], color[0]]
-        l,c = np.where(lab==i)
-        col[l,c,:] = color
+    labels = np.unique(lab)
+
+    if np.max(labels) >= len(colors):
+        print("Error: you need more colors np.max(labels) >= len(colors): %d >= %d"
+                %(np.max(labels), len(colors)) )
+        exit(1)
+
+    for i, label in enumerate(labels):
+        color = colors[i] 
+        col[lab==i,:] = color
     return col
 
 
-def extract_connected_components(lab):
+def extract_connected_components(lab0):
     """
     Maybe use
     https://stackoverflow.com/questions/26332883/how-to-find-all-connected-components-in-a-binary-image-in-matlab
     """
 
-    cc_d = {}
+    color_palette = palette.gen_jet(50)
+    
+    cc = np.zeros(lab0.shape).astype(np.uint8)
+    next_cc_id = 1
+
+    lab = lab0.copy()
     lab_id_l = np.unique(lab)
     print('Label presents: ', lab_id_l)
 
-    #for lab_id in lab_id_l:
-    for lab_id in range(10,11):
+    for lab_id in lab_id_l:
+    #for lab_id in range(10,11):
+
+        # mask all pixels with label lab_id
         l,c = np.where(lab==lab_id)
-        mask = np.zeros(lab.shape).astype(np.uint8)
-        mask[l,c] = 255
+        #print(l)
+        #print(c)
 
-        cv2.imshow('mask', mask)
+        while len(l) != 0:
+            mask = np.zeros(lab.shape).astype(np.uint8)
+            mask[l,c] = 255
+            cv2.imshow('mask', mask)
         
+            # output of flood fill, 1 where it has filled
+            # I don't know why, it does not want to fill with 128
+            mask_out = np.zeros((lab.shape[0]+2, lab.shape[1]+2)).astype(np.uint8)
+            a = cv2.floodFill(mask, mask_out, (c[0], l[0]), 128)
 
-        mask_out = np.zeros((lab.shape[0]+2, lab.shape[1]+2)).astype(np.uint8)
+            # save new connected component
+            cc[mask_out[1:-1, 1:-1]==1] = next_cc_id
+            next_cc_id += 1
+            
+            # clear pixels from this connected component
+            lab[mask_out[1:-1, 1:-1]==1] = -1
+            l, c = np.where(lab==lab_id)
 
-        cv2.floodFill(mask, mask_out, (c[0], l[0]), 128)
+            ## color display of flood fill
+            #if (1==1):
+            #    print('cc_id: %d'%(next_cc_id-1))
+            #    mask_out_col = np.zeros((mask_out.shape) + (3,)).astype(np.uint8)
+            #    mask_out_col[mask_out==1,:] = color_palette[lab_id]
+            #    cv2.imshow('mask_out', mask_out)
+            #    cv2.imshow('mask_out_col', mask_out_col)
+            #    stop_show = cv2.waitKey(0) & 0xFF
+            #    if stop_show == ord("q"):
+            #        exit(0)
 
-        mask_out_col = np.zeros((mask_out.shape) + (3,)).astype(np.uint8)
-        mask_out_col[np.where(mask_out)==1] = palette.palette_bgr[lab_id]
-        cv2.imshow('mask_out', mask_out)
 
-        stop_show = cv2.waitKey(0) & 0xFF
-        if stop_show == ord("q"):
-            exit(0)
+    # color display of all connected components
+    cc_col = lab2col(cc, color_palette)
+    #cc_col[cc==0] = 0
+    cv2.imshow('cc_col', cc_col)
+    stop_show = cv2.waitKey(0) & 0xFF
+    if stop_show == ord("q"):
+        exit(0)
+
+
+
 
 
 def sem2lab(slice_id, cam_id, survey_id, mode):

@@ -53,7 +53,7 @@ label_name = [
     'bicycle'              
 ]
 
-
+# rgb
 palette = [[128, 64, 128], 
         [244, 35, 232], 
         [70, 70, 70], 
@@ -75,24 +75,61 @@ palette = [[128, 64, 128],
         [119, 11, 32]]
 
 
+palette_bgr = [ [l[2], l[1], l[0]] for l in palette]
+
+
+
+# my colorspace
+from matplotlib import cm
+viridis = cm.get_cmap('plasma', 12)
+viridis = cm.get_cmap('viridis', 12)
+viridis = cm.get_cmap('inferno', 12)
+viridis = cm.get_cmap('magma', 12)
+viridis = cm.get_cmap('cividis', 12)
+#print(viridis)
+#print('viridis.colors', viridis.colors)
+#print('viridis(range(12))', viridis(range(12)))
+#print('viridis(np.linspace(0, 1, 12))', viridis(np.linspace(0, 1, 12)))
+num_color = 50
+myjet = (255 * viridis(np.linspace(0, 1, num_color))).astype(np.uint8)
+myjet = myjet[:,:3]
+myjet = myjet[:,::-1]
+
+
+def gen_jet(color_num):
+
+    b = (255*np.linspace(0, 1, color_num)).astype(np.uint8)
+    g = (255*np.linspace(0, 1, color_num)).astype(np.uint8)
+    r = (255*np.linspace(0, 1, color_num)).astype(np.uint8)
+
+    r = r[::-1]
+
+    bgr = np.vstack((b,g,r)).T
+    return bgr
+
+
 if __name__=='__main__':
-    np.savetxt('meta/color_map.txt', np.array(palette), fmt='%d')
+    #print(myjet)
+    #np.savetxt('meta/color_map.txt', np.array(palette), fmt='%d')
+
+    bgr = gen_jet(50)
+    print(bgr)
     
     
-    h = 40
-    num_class = len(label_name)
-    img_size = h*num_class
-    img = np.ones((img_size,img_size,3))*255
-    color_bar = np.ones((num_class*h,h,3))
-    for i in range(num_class):
-        begin = i*h
-        end = begin + h
-        color_bar[begin:end,:] = [palette[i][2], palette[i][1], palette[i][0]]
-        text_pos_x = h
-        text_pos_y = begin+int(0.7*h)
-        cv2.putText(img, str(i) + '-' + label_name[i], (text_pos_x,text_pos_y), fontFace=0, fontScale=0.5, color=(0,0,0))
-    img[:,:h] = color_bar
-    cv2.imwrite('meta/color_bar.png', img)
+    #h = 40
+    #num_class = len(label_name)
+    #img_size = h*num_class
+    #img = np.ones((img_size,img_size,3))*255
+    #color_bar = np.ones((num_class*h,h,3))
+    #for i in range(num_class):
+    #    begin = i*h
+    #    end = begin + h
+    #    color_bar[begin:end,:] = [palette[i][2], palette[i][1], palette[i][0]]
+    #    text_pos_x = h
+    #    text_pos_y = begin+int(0.7*h)
+    #    cv2.putText(img, str(i) + '-' + label_name[i], (text_pos_x,text_pos_y), fontFace=0, fontScale=0.5, color=(0,0,0))
+    #img[:,:h] = color_bar
+    #cv2.imwrite('meta/color_bar.png', img)
 
 
-
+    
