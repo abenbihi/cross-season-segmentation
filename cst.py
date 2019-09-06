@@ -38,3 +38,26 @@ COLOR = {'mask':[0,0,0], 'water':[255,0,0], 'sky':[255,255,0],
         'vegetation':[0,255,0]}
 
 W = 700
+
+
+# CMU-Seasons
+# colmap output dir
+MACHINE = 0
+if MACHINE == 0:
+    DATASET_DIR = '/home/abenbihi/ws/datasets/'
+    WS_DIR = '/home/abenbihi/ws/'
+    EXT_IMG_DIR = '/mnt/data_drive/dataset/Extended-CMU-Seasons/'
+    #DATA_DIR = '/mnt/data_drive/dataset/CMU-Seasons/'
+elif MACHINE == 1:
+    DATASET_DIR = '/home/gpu_user/assia/ws/datasets/'
+    WS_DIR = '/home/gpu_user/assia/ws/'
+    EXT_IMG_DIR = '/home/gpu_user/assia/ws/datasets/Extended-CMU-Seasons/'
+    #DATA_DIR = '/home/abenbihi/ws/datasets/CMU-Seasons/'
+else:
+    print('Get you MTF MACHINE macro correct !')
+    exit(1)
+
+    
+META_DIR = '%s/life_saver/datasets/CMU-Seasons/meta/'%WS_DIR
+NUM_CLASS = 19
+
