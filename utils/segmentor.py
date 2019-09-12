@@ -78,6 +78,8 @@ class Segmentor():
                 slice_size[1] * (1 - sliding_transform_step[0]))
             grade_length_y = round(
                 slice_size[2] * (1 - sliding_transform_step[1]))
+            #print(grade_length_x)
+            #print(grade_length_y)
 
             # when slice is not to the extreme left, there should be a grade on
             # the left side
@@ -154,7 +156,7 @@ class Segmentor():
                         "Segmentation already exists, overwriting: {}".format(seg_path))
 
         try:
-            img = cv2.imread(img_path)[:, :cst.W]
+            img = cv2.imread(img_path)#[:, :cst.W]
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             #img = Image.open(img_path).convert('RGB')
         except OSError:
