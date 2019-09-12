@@ -33,8 +33,8 @@ if MACHINE == 0:
 elif MACHINE == 1:
     DATASET_DIR = '/home/gpu_user/assia/ws/datasets/'
     WS_DIR = '/home/gpu_user/assia/ws/'
-    #EXT_IMG_DIR = '/home/gpu_user/assia/ws/datasets/Extended-CMU-Seasons/'
-    EXT_IMG_DIR = '/mnt/dataX/assia/Extended-CMU-Seasons/'
+    EXT_IMG_DIR = '/home/gpu_user/assia/ws/datasets/Extended-CMU-Seasons/'
+    #EXT_IMG_DIR = '/mnt/dataX/assia/Extended-CMU-Seasons/'
     #DATA_DIR = '/home/abenbihi/ws/datasets/CMU-Seasons/'
 else:
     print('Get you MTF MACHINE macro correct !')
@@ -212,10 +212,12 @@ def segment(slice_id):
 
 if __name__ == '__main__':
 
-    #slice_id = 24
-    for slice_id in range(22,23):
-        if slice_id == 24:
-            continue
+    #for slice_id in range(22,23):
+    #    if slice_id == 24:
+    #        continue
+    #    segment(slice_id)
+    slice_id = 24
+    for slice_id in [2,8]:
         segment(slice_id)
 
 
