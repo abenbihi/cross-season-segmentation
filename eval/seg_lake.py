@@ -70,8 +70,14 @@ def run_net(filenames_ims, filenames_segs, filenames_mask):
             tnow - t0, (tnow - t0) / count * len(filenames_ims), im_file))
         #print(save_path)
 
+        #segmentor.run_and_save( im_file, save_path, '',
+        #        pre_sliding_crop_transform = pre_validation_transform,
+        #        sliding_crop = sliding_crop, input_transform = input_transform,
+        #        skip_if_seg_exists = True, use_gpu = True, save_logits=False,
+        #        mask_path=mask_path)
+
         segmentor.run_and_save( im_file, save_path, '',
-                pre_sliding_crop_transform = pre_validation_transform,
+                pre_sliding_crop_transform = None,
                 sliding_crop = sliding_crop, input_transform = input_transform,
                 skip_if_seg_exists = True, use_gpu = True, save_logits=False,
                 mask_path=mask_path)
@@ -377,8 +383,9 @@ def segment_retrieval_dataset():
 def segment_retrieval_dataset_with_mask():
     """Img with water filtered out."""
     res_dir = 'res/icra_retrieval/'
-    meta_dir = '%s/lake/meta/icra_retrieval/'%cst.SCRIPT_DIR
-    mask_dir = '%s/datasets/icra_retrieval/water/global/'%(cst.SCRIPT_DIR)
+    meta_dir= '%s/lake/meta/icra_retrieval/'%cst.SCRIPT_DIR
+    mask_dir= '%s/datasets/icra_retrieval/water/global/'%(cst.SCRIPT_DIR)
+    img_dir = '%s/datasets/icra_retrieval/img/'%(cst.SCRIPT_DIR)
 
     surveys = np.loadtxt('%s/retrieval_surveys.txt'%meta_dir, dtype=np.int32)
     img_ids = np.loadtxt('%s/retrieval_img_ids.txt'%meta_dir, dtype=np.int32)
@@ -388,13 +395,14 @@ def segment_retrieval_dataset_with_mask():
     filenames_ims, filenames_segs, filenames_mask = [],[],[]
     fn = ['%d/%04d/%04d.jpg'%(s, img_id/1000, img_id%1000) for s,img_id in
             zip(surveys, img_ids)]
-    filenames_ims  = ['%s/%s'%(cst.SURVEY_DIR, f) for f in fn]
+    filenames_ims  = ['%s/%s'%(img_dir, f) for f in fn]
+    #filenames_ims  = ['%s/%s'%(cst.SURVEY_DIR, f) for f in fn]
     filenames_segs = ['%s/%s.png'%(res_dir, f.split(".")[0]) for f in fn]
     filenames_mask = ['%s/%s.png'%(mask_dir, f.split(".")[0]) for f in fn]
 
-    #print(filenames_ims[:3])
-    #print(filenames_segs[:3])
-    #print(filenames_mask[:3])
+    print(filenames_ims[:3])
+    print(filenames_segs[:3])
+    print(filenames_mask[:3])
 
     subdirs = set([os.path.dirname(f) for f in filenames_segs])
     for dir_ in subdirs:

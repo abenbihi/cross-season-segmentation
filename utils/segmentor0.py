@@ -186,12 +186,10 @@ class Segmentor():
             img = pre_sliding_crop_transform(img)
 
         img_slices, slices_info = sliding_crop(img)
-        #print(len(img_slices))
-        #exit(0)
         img_slices = [input_transform(e) for e in img_slices]
         img_slices = torch.stack(img_slices, 0)
         slices_info = torch.LongTensor(slices_info)
-        #slices_info.squeeze_(0)
+        slices_info.squeeze_(0)
 
         output = self.run_on_slices(
             img_slices,

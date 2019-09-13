@@ -464,7 +464,7 @@ class SlidingCropImageOnly(object):
                     slices_info.append([sy, ey, sx, ex, sub_h, sub_w])
             return img_slices, slices_info
         else:
-            img, mask, sub_h, sub_w = self._pad(img)
+            img, sub_h, sub_w = self._pad(img)
             img = Image.fromarray(img.astype(np.uint8)).convert('RGB')
             return [img], [[0, sub_h, 0, sub_w, sub_h, sub_w]]
 
