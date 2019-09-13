@@ -347,6 +347,62 @@ def segment_val(data_id):
     run_net(filenames_ims, filenames_segs, None)
 
 
+def segment_retrieval_dataset():
+    """ """
+    res_dir = 'res/icra_retrieval/'
+    meta_dir = '%s/lake/meta/icra_retrieval/'%cst.SCRIPT_DIR
+    surveys = np.loadtxt('%s/retrieval_surveys.txt'%meta_dir, dtype=np.int32)
+    img_ids = np.loadtxt('%s/retrieval_img_ids.txt'%meta_dir, dtype=np.int32)
+    surveys = surveys.flatten()
+    img_ids = img_ids.flatten()
+
+    filenames_ims, filenames_segs = [],[]
+    fn = ['%d/%04d/%04d.jpg'%(s, img_id/1000, img_id%1000) for s,img_id in
+            zip(surveys, img_ids)]
+    filenames_ims = ['%s/%s'%(cst.SURVEY_DIR, f) for f in fn]
+    filenames_segs = ['%s/%s.png'%(res_dir, f.split(".")[0]) for f in fn]
+
+    #print(filenames_ims[:3])
+    #print(filenames_segs[:3])
+
+    subdirs = set([os.path.dirname(f) for f in filenames_segs])
+    for dir_ in subdirs:
+        #print(dir_)
+        if not os.path.exists(dir_):
+            os.makedirs(dir_)
+
+    run_net(filenames_ims, filenames_segs, None)
+
+
+def segment_retrieval_dataset_with_mask():
+    """Img with water filtered out."""
+    res_dir = 'res/icra_retrieval/'
+    meta_dir = '%s/lake/meta/icra_retrieval/'%cst.SCRIPT_DIR
+    mask_dir = '%s/datasets/icra_retrieval/water/global/'%(cst.SCRIPT_DIR)
+
+    surveys = np.loadtxt('%s/retrieval_surveys.txt'%meta_dir, dtype=np.int32)
+    img_ids = np.loadtxt('%s/retrieval_img_ids.txt'%meta_dir, dtype=np.int32)
+    surveys = surveys.flatten()
+    img_ids = img_ids.flatten()
+
+    filenames_ims, filenames_segs, filenames_mask = [],[],[]
+    fn = ['%d/%04d/%04d.jpg'%(s, img_id/1000, img_id%1000) for s,img_id in
+            zip(surveys, img_ids)]
+    filenames_ims  = ['%s/%s'%(cst.SURVEY_DIR, f) for f in fn]
+    filenames_segs = ['%s/%s.png'%(res_dir, f.split(".")[0]) for f in fn]
+    filenames_mask = ['%s/%s.png'%(mask_dir, f.split(".")[0]) for f in fn]
+
+    #print(filenames_ims[:3])
+    #print(filenames_segs[:3])
+    #print(filenames_mask[:3])
+
+    subdirs = set([os.path.dirname(f) for f in filenames_segs])
+    for dir_ in subdirs:
+        #print(dir_)
+        if not os.path.exists(dir_):
+            os.makedirs(dir_)
+    run_net(filenames_ims, filenames_segs, filenames_mask)
+
 
 if __name__ == '__main__':
     survey_id = 150429
@@ -360,7 +416,9 @@ if __name__ == '__main__':
     #iter_ = 20
     #segment(survey_id, seq_start, seq_end, iter_)
 
-    segment_val(4)
+    #segment_val(4)
+    #segment_retrieval_dataset()
+    segment_retrieval_dataset_with_mask()
 
 
     #survey0_id = 150429

@@ -217,7 +217,7 @@ if __name__ == '__main__':
     #        continue
     #    segment(slice_id)
     slice_id = 24
-    for slice_id in [2,8]:
+    for slice_id in [3]:
         segment(slice_id)
 
 

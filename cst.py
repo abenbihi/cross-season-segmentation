@@ -16,11 +16,9 @@ if MACHINE == 0:
     ROOT_DATA_DIR = '/mnt/data_drive/dataset/lake/'
     POSE_DIR = '/home/abenbihi/ws/datasets/lake/poses/'
     WS_DIR = '/home/abenbihi/ws/'
-
 elif MACHINE == 1:
     ROOT_DATA_DIR = '/mnt/lake/'
     WS_DIR = '/home/gpu_user/assia/ws/'
-
 else:
     print("Get you MTF MACHINE macro correct")
     exit(1)
@@ -28,7 +26,7 @@ else:
 SURVEY_DIR = '%s/VBags/'%ROOT_DATA_DIR
 PAIRS_DIR = '%s/Pairs/'%ROOT_DATA_DIR
 POSE_DIR = '%s/MapsDyn'%ROOT_DATA_DIR
-SCRIPT_DIR = '%s/datasets/lake'%WS_DIR
+SCRIPT_DIR = '%s/datasets/lake/'%WS_DIR
 SEG_DIR = '%s/datasets/seg'%SCRIPT_DIR
 
 NETVLAD_DATA_DIR = '%s/datasets/netvlad'%SCRIPT_DIR
@@ -57,7 +55,6 @@ else:
     print('Get you MTF MACHINE macro correct !')
     exit(1)
 
-    
 META_DIR = '%s/life_saver/datasets/CMU-Seasons/meta/'%WS_DIR
 NUM_CLASS = 19
 
