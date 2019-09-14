@@ -1,24 +1,19 @@
-import utils.joint_transforms as joint_transforms
-from utils.misc import check_mkdir
-
-
 import os
 import numbers
-import numpy as np
-from scipy.special import expit
 
-from PIL import Image
 import cv2
+import numpy as np
+from PIL import Image
+from scipy.special import expit
 
 import torch
 import torchvision.transforms as standard_transforms
 from torch.autograd import Variable
 import torchvision.transforms.functional as F
 
-
+import utils.joint_transforms as joint_transforms
+from utils.misc import check_mkdir
 import cst
-#import sys
-#sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 
 class Segmentor():
@@ -156,40 +151,27 @@ class Segmentor():
                         "Segmentation already exists, overwriting: {}".format(seg_path))
 
         try:
-            #img = cv2.imread(img_path)
-            img = cv2.imread(img_path)[:,:700]
+            img = cv2.imread(img_path)
+            img = cv2.resize(img, None, fx=0.5, fy=0.5,
+                    interpolation=cv2.INTER_AREA)
+            #print(img.shape)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         except OSError:
             print("Error reading input image, skipping: {}".format(img_path))
-
-        if mask_path is not None:
-            mask = cv2.imread(mask_path, cv2.IMREAD_UNCHANGED)
-            #print(np.unique(mask))
-            #mask_col = np.zeros(img.shape).astype(np.uint8)
-            #mask_col[mask==0] = 0
-            #mask_col[mask==1] = [255,0,0]
-            #cv2.imshow('mask_col', mask_col)
-            #img[mask==255] = 0 # label to ignore
-            img[mask!=0] = 0 # label to ignore
-
-            ## debug
-            #cv2.imshow('mask', mask)
-            #cv2.imshow('img', img)
-            #if (cv2.waitKey(0) & 0xFF) == ord("q"):
-            #    exit(0)
 
         img = Image.fromarray(img.astype(np.uint8))
 
         # creating sliding crop windows and transform them
         img_size_orig = img.size
         if pre_sliding_crop_transform is not None:  # might reshape image
+            print("FUCK")
             img = pre_sliding_crop_transform(img)
 
         img_slices, slices_info = sliding_crop(img)
         img_slices = [input_transform(e) for e in img_slices]
         img_slices = torch.stack(img_slices, 0)
         slices_info = torch.LongTensor(slices_info)
-        slices_info.squeeze_(0)
+        #slices_info.squeeze_(0)
 
         output = self.run_on_slices(
             img_slices,

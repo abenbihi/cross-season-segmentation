@@ -1,13 +1,4 @@
-
-
-from models import model_configs
-from utils.segmentor import Segmentor
-import utils.joint_transforms as joint_transforms
-from datasets import cityscapes
-#from datasets import cityscapes, dataset_configs
-#from utils.misc import check_mkdir, get_global_opts, rename_keys_to_match
-from utils.misc import rename_keys_to_match
-
+""" """
 import os, glob
 import re
 import numpy as np
@@ -20,8 +11,11 @@ import math
 import sys
 import time
 
-#sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
+from models import model_configs
+from utils.segmentor_cmu import Segmentor
+import utils.joint_transforms as joint_transforms
+from datasets import cityscapes
+from utils.misc import rename_keys_to_match
 
 # colmap output dir
 MACHINE = 1
@@ -93,6 +87,88 @@ def run_net(filenames_ims, filenames_segs):
                 skip_if_seg_exists = True, use_gpu = True, save_logits=False)
         count += 1 
 
+
+def run_net_wo_resize(filenames_ims, filenames_segs):
+    # network model
+    print("Using CUDA" if torch.cuda.is_available() else "Using CPU")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    # Network and weight loading
+    model_config = model_configs.PspnetCityscapesConfig()
+    net = model_config.init_network().to(device)
+    print('load model ' + NETWORK_FILE)
+    state_dict = torch.load(NETWORK_FILE, map_location=lambda storage, 
+            loc: storage)
+    # needed since we slightly changed the structure of the network in pspnet
+    state_dict = rename_keys_to_match(state_dict)
+    net.load_state_dict(state_dict)
+    net.eval()
+
+
+    # data proc
+    input_transform = model_config.input_transform
+    pre_validation_transform = model_config.pre_validation_transform
+    # make sure crop size and stride same as during training
+    sliding_crop = joint_transforms.SlidingCropImageOnly(
+        713, 2/3.)
+
+
+    # encapsulate pytorch model in Segmentor class
+    print("Class number: %d"%net.n_classes) # 19
+    segmentor = Segmentor( net, net.n_classes, colorize_fcn =
+            cityscapes.colorize_mask, n_slices_per_pass = 10)
+
+    # let's go
+    count = 1
+    t0 = time.time()
+    for i, im_file in enumerate(filenames_ims):
+        save_path = filenames_segs[i]
+        tnow = time.time()
+        print( "[%d/%d (%.1fs/%.1fs)] %s" % (count, len(filenames_ims), 
+            tnow - t0, (tnow - t0) / count * len(filenames_ims), im_file))
+        #print(save_path)
+
+        segmentor.run_and_save( im_file, save_path, '',
+                pre_sliding_crop_transform = None,
+                sliding_crop = sliding_crop, input_transform = input_transform,
+                skip_if_seg_exists = True, use_gpu = True, save_logits=False)
+        count += 1 
+
+
+def segment_slice(slice_id):
+    # output dir
+    save_folder = 'res/ext_cmu/slice%d/'%(slice_id)
+    if not os.path.exists('%s/query/'%save_folder):
+        os.makedirs('%s/query/'%save_folder)
+    if not os.path.exists('%s/database/'%save_folder):
+        os.makedirs('%s/database/'%save_folder)
+    
+    q_fn = glob.glob('%s/slice%d/query/*'%(EXT_IMG_DIR, slice_id))
+    db_fn = glob.glob('%s/slice%d/database/*'%(EXT_IMG_DIR, slice_id))
+
+    filenames_ims = q_fn + db_fn
+    print(filenames_ims[0])
+    print(filenames_ims[-1])
+
+    filenames_segs = ['%s/%s.png' %(save_folder, 
+        ('/'.join(l.split("/")[-2:]).split(".")[0])) 
+        for l in filenames_ims]
+    print(filenames_segs[0])
+    print(filenames_segs[-1])
+    
+    #run_net(filenames_ims, filenames_segs)
+    run_net_wo_resize(filenames_ims, filenames_segs)
+
+
+if __name__ == '__main__':
+
+    #for slice_id in range(22,23):
+    #    if slice_id == 24:
+    #        continue
+    #    segment(slice_id)
+    for slice_id in [7,6,8]:
+        #segment_slice(slice_id)
+        segment_slice(slice_id)
 
 ## useful for xialong
 #def segment(slice_id, cam_id, survey_id):
@@ -180,45 +256,5 @@ def run_net(filenames_ims, filenames_segs):
 #        count += 1
 #        #if count == 3:
 #        #    break
-
-
-
-def segment(slice_id):
-
-    # output dir
-    save_folder = 'res/ext_cmu/slice%d/'%(slice_id)
-    if not os.path.exists('%s/query/'%save_folder):
-        os.makedirs('%s/query/'%save_folder)
-    if not os.path.exists('%s/database/'%save_folder):
-        os.makedirs('%s/database/'%save_folder)
-
-    
-    q_fn = glob.glob('%s/slice%d/query/*'%(EXT_IMG_DIR, slice_id))
-    db_fn = glob.glob('%s/slice%d/database/*'%(EXT_IMG_DIR, slice_id))
-
-    filenames_ims = q_fn + db_fn
-    print(filenames_ims[0])
-    print(filenames_ims[-1])
-
-    filenames_segs = ['%s/%s.png' %(save_folder, 
-        ('/'.join(l.split("/")[-2:]).split(".")[0])) 
-        for l in filenames_ims]
-    print(filenames_segs[0])
-    print(filenames_segs[-1])
-
-    
-    run_net(filenames_ims, filenames_segs)
-
-
-if __name__ == '__main__':
-
-    #for slice_id in range(22,23):
-    #    if slice_id == 24:
-    #        continue
-    #    segment(slice_id)
-    slice_id = 24
-    for slice_id in [3]:
-        segment(slice_id)
-
 
 

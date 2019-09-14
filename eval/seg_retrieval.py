@@ -95,8 +95,6 @@ def run_net(filenames_ims, filenames_segs):
 
 
 def segment_survey(slice_id, cam_id, survey_id, mode):
-
-
     # output dir
     if mode == 'database':
         save_folder = 'res/ext_cmu/%d/c%d_db/'%(slice_id, cam_id)
