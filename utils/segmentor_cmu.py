@@ -152,26 +152,30 @@ class Segmentor():
 
         try:
             img = cv2.imread(img_path)
-            img = cv2.resize(img, None, fx=0.5, fy=0.5,
-                    interpolation=cv2.INTER_AREA)
+            #if pre_sliding_crop_transform is None:
+            #    img = cv2.resize(img, None, fx=0.5, fy=0.5,
+            #            interpolation=cv2.INTER_AREA)
             #print(img.shape)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
         except OSError:
             print("Error reading input image, skipping: {}".format(img_path))
 
-        img = Image.fromarray(img.astype(np.uint8))
 
+        img = Image.fromarray(img.astype(np.uint8))
         # creating sliding crop windows and transform them
         img_size_orig = img.size
         if pre_sliding_crop_transform is not None:  # might reshape image
-            print("FUCK")
+            #print("FUCK")
             img = pre_sliding_crop_transform(img)
 
         img_slices, slices_info = sliding_crop(img)
         img_slices = [input_transform(e) for e in img_slices]
         img_slices = torch.stack(img_slices, 0)
         slices_info = torch.LongTensor(slices_info)
-        #slices_info.squeeze_(0)
+        
+        if pre_sliding_crop_transform is not None:
+            slices_info.squeeze_(0)
 
         output = self.run_on_slices(
             img_slices,
@@ -180,7 +184,6 @@ class Segmentor():
             use_gpu=use_gpu,
             return_logits=save_logits)
             
-
         # save color
         if save_logits:
             prediction_orig = output.max(0)[1].squeeze_(0).cpu().numpy()
@@ -203,7 +206,6 @@ class Segmentor():
             #prediction_colorized.save('%s.png'%seg_path.split(".")[0])
             prediction_colorized.save('%s'%seg_path)
 
-        
         if save_logits: # useful for SE xp
             # save logits
             output = output.unsqueeze(0)
@@ -216,11 +218,15 @@ class Segmentor():
             fname = os.path.basename(seg_path)
             prob_out_dir = '%s/prob'%save_folder
             for k in range(logits_np.shape[0]):
+                ## img format
                 prob_k_fn = '%s/class_%d/%s'%(prob_out_dir, k, fname)
-                #print(prob_k_fn)
                 cv2.imwrite(prob_k_fn, (logits_np[k,:,:]*255).astype(np.uint8))
+                
+                # text format
+                #prob_k_fn = '%s/class_%d/%s.txt'%(prob_out_dir, k, fname.split(".")[0])
+                #print(prob_k_fn)
+                #np.savetxt(prob_k_fn, logits_np[k,:,:])
             
-
             # save labels
             lab_fn = '%s/lab/%s'%(save_folder, fname)
             #print(lab_fn)
